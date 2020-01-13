@@ -21,7 +21,7 @@
         "howTo": "Appuyez sur le bouton 'Générer un QrCode', puis scannez le code à l'aide de votre application Google Authenticator (iOS et Android) ou Authenticator+ (Windows Phone) ou entrez le code directement dans l'application"
       },
       "random_code": {
-        "name": "Code à usage unique",
+        "name": "Code par SMS",
         "description": "Méthode permettant de générer des codes aléatoire valides pour un certain temps et à usage unique"
       },
       "bypass": {
