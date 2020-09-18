@@ -243,11 +243,12 @@ var UserDashboard = Vue.extend({
         'methods': Object,
         'user': Object,
         'currentmethod': String,
-        'get_user': Function
+        'get_user': Function,
     },
     data: function () {
         return {
-            "switchPushEvent": MouseEvent
+            "switchPushEvent": MouseEvent,
+            "show":false,
         }
     },
     components: {
@@ -264,6 +265,8 @@ var UserDashboard = Vue.extend({
             switch (event.target.name) {
                 case 'push':
                     this.askPushActivation(event);
+                    this.storage=window.sessionStorage;
+                    this.storage.setItem('activeNotif', "true");
                     break;
                 case 'bypass':
                     this.activateBypass(event);
@@ -292,9 +295,16 @@ var UserDashboard = Vue.extend({
                 cache: false,
                 success: function (data) {
                     if (data.code == "Ok") {
+                        this.storage=window.sessionStorage;
                         this.user.methods.push.activationCode = data.activationCode;
+                        this.storage.setItem('activationCode', data.activationCode);
                         this.user.methods.push.qrCode = data.qrCode;
+                        this.storage.setItem('qrCode', data.qrCode);
                         this.user.methods.push.api_url = data.api_url;
+                        this.storage.setItem('api_url', data.api_url);
+                        event.target.checked = true;
+                        this.show = true;
+                       // Materialize.toast('changed', 3000, 'green darken-1');
                     }else Materialize.toast('Erreur interne, veuillez réessayer plus tard.', 3000, 'red darken-1');
                 }.bind(this),
                 error: function (xhr, status, err) {
@@ -379,11 +389,21 @@ var UserDashboard = Vue.extend({
                 dataType: 'json',
                 cache: false,
                 success: function (data) {
+                    this.storage=window.sessionStorage;
+                    this.storage.setItem('activeNotif', "false");
                     if (data.code != "Ok") {
                         event.target.checked = true;
                         Materialize.toast('Erreur interne, veuillez réessayer plus tard.', 3000, 'red darken-1');
                     }
-                    else this.user.methods[event.target.name].active = false;
+                    else {
+                        this.user.methods[event.target.name].active = false;
+                        if(this.show){
+                            this.user.methods.push.activationCode = null;
+                            this.user.methods.push.qrCode = null;
+                            this.user.methods.push.api_url = null;
+                            this.show = false;
+                        }
+                    }
                 }.bind(this),
                 error: function (xhr, status, err) {
                     event.target.checked = true;
@@ -475,6 +495,7 @@ var UserView = Vue.extend({
         },
         askPushActivation: function () {
             //ajax
+            this.user.methods.push.activationCode = true;
             $.ajax({
                 method: "PUT",
                 url: "/api/admin/" + this.user.uid + "/push/activate",
@@ -482,6 +503,7 @@ var UserView = Vue.extend({
                 cache: false,
                 success: function (data) {
                     if (data.code == "Ok") {
+                        event.target.checked = true;
                         this.user.methods.push.activationCode = data.activationCode;
                         this.user.methods.push.qrCode = data.qrCode;
                         this.user.methods.push.api_url = data.api_url;
@@ -659,7 +681,6 @@ var ManagerDashboard = Vue.extend({
             if (event.target.value !== "") {
                 for (uid in this.uids) {
                     this.isHidden= true;
-                    
                     if (this.uids[uid].includes(event.target.value)) {
                         this.suggestions.push(this.uids[uid]);
                     }
@@ -779,6 +800,8 @@ var AdminDashboard = Vue.extend({
                 dataType: 'json',
                 cache: false,
                 success: function (data) {
+                    this.storage=window.sessionStorage;
+                    this.storage.setItem('activeNotif', "false");
                     if (data.code != "Ok") {
                         this.methods[event.target.name].activate = true;
                         Materialize.toast('Erreur interne, veuillez réessayer plus tard.', 3000, 'red darken-1');
@@ -926,6 +949,11 @@ var app = new Vue({
 
         setUser: function (data) {
             this.user.uid = data.uid;
+            this.storage=window.sessionStorage;
+            this.user.activationCode = this.storage.getItem('activationCode');
+            this.user.api_url = this.storage.getItem('api_url');
+            this.user.qrCode = this.storage.getItem('qrCode');
+            this.user.activeNotif = this.storage.getItem('activeNotif');
             this.user.methods = data.user.methods;
             this.user.transports = data.user.transports;
         },
