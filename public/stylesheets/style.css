@@ -211,6 +211,10 @@ body.IE7 .Switch.Round {
 #app.red.darken-1 {
          background-color: #d93600;
 }
+/* ne pas afficher le lien "Se déconnecter" */
+#app .material-icons.prefix, #app .bold.flex.waves-effect a {
+    display: none;
+}
 /* Langues */
 #app .collapsible-header i {
     text-align: left;
